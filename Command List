@@ -28,7 +28,7 @@ Get-VM | Get-Snapshot | Select VM,Name,Description,@{Label="Size";Expression={"{
 ** List VMs with Hot Add (CPU-Memory) Enabled
 (Get-VM | Get-View | Where-Object {$_.Config. MemoryHotAddEnabled -eq "True"}).Name 
 
-** List VMs and Connected ISO Paths
+** List VMs and Connected ISO Paths (Out-Gridview will not work on this)
 Get-VM | FT Name, @{Label="ISO File"; Expression = { ($_ | Get-CDDrive).ISOPath }} 
 
 3499
