@@ -1,0 +1,34 @@
+!nfo! If you are new and not sure of what cmdlets can do, do not run commands which have 'Set-' as prefix. Check full command for that.
+If a command has 'Get-' as prefix, it cannot be harmful unless from an untrusted source.
+DISCLAIMER : I am kinda new to PowerCLI so these commands while they work just fine, can deffo be improved upon. Lemmino.
+Will keep adding more here. Track by Release Versions.
+
+Prereq : Connect to single or multiple vCenters / ESXi Hosts via Connect-VIServer -Server <Hostname/IP>
+You can add '| Out-Gridview' or '| ogv' at the end of any command string to get a window output which allows a few more features pertaining to seasoning output. Not that it will not work for all command strings.
+
+** List WWN of Cluster
+Get-Cluster <ClusterName> | Get-VMhost | Get-VMHostHBA -Type FibreChannel | Select VMHost,Device,@{N="WWN";E={"{0:X}" -f $_.NodeWorldWideName}}
+Get-Cluster <ClusterName> | Get-VMhost | Get-VMHostHBA -Type FibreChannel | Select VMHost,Device,@{N="WWN";E={"{0:X}" -f $_.PortWorldWideName}}
+
+** List IP Disks (Not subject to Snapshots) 
+Get-VM | Get-HardDisk | where {$_.Persistence -eq "IndependentPersistent"}
+
+** List ESXi Host Native Services Status
+Get-VMHostService -Host <Hostname/IP> -Refresh
+
+** List NTP Service
+Get-VMHost |Sort Name | Select Name, @{N=“NTPServer“;E={$_ | Get-VMHostNtpServer}}, @{N=“ServiceRunning“;E={(Get-VmHostService -VMHost $_ | Where-Object {$_.key-eq “ntpd“}).Running}}
+
+** List ESXi Hosts Time (Out-Gridview will not work on this)
+foreach($esxcli in get-vmhost|get-esxcli){""|select @{n='Time';e={$esxcli.system.time.get()}},@{n='hostname';e={$esxcli.system.hostname.get().hostname}} }
+
+** List Snapshots with Key Details (Best Viewed via Out-Gridview)
+Get-VM | Get-Snapshot | Select VM,Name,Description,@{Label="Size";Expression={"{0:N2} GB" -f ($_.SizeGB)}},Created
+
+** List VMs with Hot Add (CPU-Memory) Enabled
+(Get-VM | Get-View | Where-Object {$_.Config. MemoryHotAddEnabled -eq "True"}).Name 
+
+** List VMs and Connected ISO Paths
+Get-VM | FT Name, @{Label="ISO File"; Expression = { ($_ | Get-CDDrive).ISOPath }} 
+
+3499
